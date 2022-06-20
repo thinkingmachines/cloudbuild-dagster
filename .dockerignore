@@ -1,0 +1,29 @@
+# Git
+.git
+.github/
+.gitignore
+
+# Docker
+docker-compose.yml
+.docker
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Terraform
+terraform/
+
+# Tests
+tests/
+
