@@ -1,0 +1,90 @@
+steps:
+  - id: build-daemon-dagit
+    waitFor: ["-"]
+    name: gcr.io/kaniko-project/executor:latest
+    args:
+      - "--dockerfile=daemon_dagit.Dockerfile"
+      - "--context=dir:///workspace"
+      - "--destination=gcr.io/${PROJECT_ID}/daemon-dagit${SHORT_SHA}"
+      - "--cache=true"
+
+  - id: build-dagster-pipelines
+    waitFor: ["-"]
+    name: gcr.io/kaniko-project/executor:latest
+    args:
+      - "--dockerfile=dagster_pipelines.Dockerfile"
+      - "--context=dir:///workspace"
+      - "--destination=gcr.io/${PROJECT_ID}/dagster-pipelines:${SHORT_SHA}"
+      - "--cache=true"
+
+  - id: build-dagster-compose
+    waitFor: ["-"]
+    name: gcr.io/kaniko-project/executor:latest
+    args:
+      - "--dockerfile=compose.Dockerfile"
+      - "--context=dir:///workspace/deploy"
+      - "--destination=gcr.io/${PROJECT_ID}/dagster-compose:${SHORT_SHA}"
+      - "--cache=true"
+
+  - id: cleanup-ssh-keys
+    waitFor: ["-"]
+    name: gcr.io/cloud-builders/gcloud
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        for i in $(gcloud compute os-login ssh-keys list)
+        do 
+          echo $i; 
+          gcloud compute os-login ssh-keys remove --key $i || continue 
+        done
+
+  - id: docker-permissions
+    waitFor: ["cleanup-ssh-keys"]
+    name: gcr.io/cloud-builders/gcloud
+    args:
+      - compute
+      - ssh
+      - "--zone=${_GCE_ZONE}"
+      - "--ssh-key-expire-after=1m"
+      - "${_DAGSTER_INSTANCE}"
+      - "--"
+      - |
+        sudo groupadd docker
+        sudo usermod -aG docker $${USER}
+        docker system prune -a -f
+
+  - id: deploy-dagster
+    waitFor:
+      [
+        "build-daemon-dagit",
+        "build-dagster-compose",
+        "build-dagster-pipelines",
+        "docker-permissions",
+      ]
+    name: gcr.io/cloud-builders/gcloud
+    entrypoint: "bash"
+    args:
+      - -c
+      - |
+        gcloud compute ssh --zone=${_GCE_ZONE} --ssh-key-expire-after=1m ${_DAGSTER_INSTANCE} -- \
+        "docker-credential-gcr configure-docker gcr.io && \
+
+        docker pull gcr.io/${PROJECT_ID}/dagster:${SHORT_SHA} && \
+        docker pull gcr.io/${PROJECT_ID}/dagster-pipelines:${SHORT_SHA} && \
+        docker pull gcr.io/${PROJECT_ID}/dagster-compose:${SHORT_SHA} && \
+
+        docker run --rm \
+          -v "/var/run/docker.sock:/var/run/docker.sock" \
+          --env "DAGSTER_POSTGRES_DB=${_DAGSTER_POSTGRES_DB}" \
+          --env "DAGSTER_POSTGRES_DB=${_DAGSTER_POSTGRES_USER}" \
+          --env "DAGSTER_POSTGRES_HOSTNAME=${_DAGSTER_POSTGRES_HOSTNAME}" \
+          --env "DAGSTER_POSTGRES_PASSWORD=$$DAGSTER_POSTGRES_PASSWORD" \
+          gcr.io/$PROJECT_ID/dagster-compose:${SHORT_SHA}"
+
+    secretEnv: ["DAGSTER_POSTGRES_PASSWORD"]
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/${PROJECT_ID}/secrets/DAGSTER_POSTGRES_PASSWORD/versions/1
+      env: "DAGSTER_POSTGRES_PASSWORD"
