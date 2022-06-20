@@ -88,9 +88,8 @@ services:
       - dagster_pipelines
 
 networks:
-dagster_network:
-  driver: bridge
-  name: dagster_network
-  
+  dagster_network:
+    driver: bridge
+    name: dagster_network
 volumes:
   dagster-pg:
