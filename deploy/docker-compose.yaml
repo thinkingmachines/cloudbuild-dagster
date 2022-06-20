@@ -91,5 +91,6 @@ networks:
 dagster_network:
   driver: bridge
   name: dagster_network
+  
 volumes:
-dagster-pg:
+  dagster-pg:
