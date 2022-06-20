@@ -5,7 +5,7 @@ steps:
     args:
       - "--dockerfile=daemon_dagit.Dockerfile"
       - "--context=dir:///workspace"
-      - "--destination=gcr.io/${PROJECT_ID}/daemon-dagit${SHORT_SHA}"
+      - "--destination=gcr.io/${PROJECT_ID}/daemon-dagit:${SHORT_SHA}"
       - "--cache=true"
 
   - id: build-dagster-pipelines
@@ -52,7 +52,7 @@ steps:
       - |
         sudo groupadd docker
         sudo usermod -aG docker $${USER}
-        docker system prune -a -f
+        sudo docker system prune -a -f
 
   - id: deploy-dagster
     waitFor:
@@ -70,7 +70,7 @@ steps:
         gcloud compute ssh --zone=${_GCE_ZONE} --ssh-key-expire-after=1m ${_DAGSTER_INSTANCE} -- \
         "docker-credential-gcr configure-docker gcr.io && \
 
-        docker pull gcr.io/${PROJECT_ID}/dagster:${SHORT_SHA} && \
+        docker pull gcr.io/${PROJECT_ID}/daemon-dagit:${SHORT_SHA} && \
         docker pull gcr.io/${PROJECT_ID}/dagster-pipelines:${SHORT_SHA} && \
         docker pull gcr.io/${PROJECT_ID}/dagster-compose:${SHORT_SHA} && \
 
