@@ -21,7 +21,7 @@ services:
   # Multiple containers like this can be deployed separately - each just needs to run on
   # its own port and have its own entry in the workspace.yaml file that's loaded by dagit.
   dagster_pipelines:
-    image: gcr.io/${GCP_PROJECT_ID}/dagster-pipelines:latest
+    image: gcr.io/${GCP_PROJECT_ID}/dagster-pipelines:${SHA}
     container_name: dagster_pipelines
     restart: always
     environment:
@@ -29,7 +29,7 @@ services:
       DAGSTER_POSTGRES_USER: "${DAGSTER_POSTGRES_USER}"
       DAGSTER_POSTGRES_PASSWORD: "${DAGSTER_POSTGRES_PASSWORD}"
       DAGSTER_POSTGRES_DB: "${DAGSTER_POSTGRES_DB}"
-      DAGSTER_CURRENT_IMAGE: gcr.io/${GCP_PROJECT_ID}/dagster-pipelines:latest
+      DAGSTER_CURRENT_IMAGE: gcr.io/${GCP_PROJECT_ID}/dagster-pipelines:${SHA}
     networks:
       - dagster_network
 
@@ -37,7 +37,7 @@ services:
   # Since our instance uses the QueuedRunCoordinator, any runs submitted from dagit will be put on
   # a queue and later dequeued and launched by dagster-daemon.
   dagit:
-    image: gcr.io/${GCP_PROJECT_ID}/daemon_dagit:latest
+    image: gcr.io/${GCP_PROJECT_ID}/daemon-dagit:${SHA}
     entrypoint:
       - dagit
       - -h
@@ -67,7 +67,7 @@ services:
   # This service runs the dagster-daemon process, which is responsible for taking runs
   # off of the queue and launching them, as well as creating runs from schedules or sensors.
   dagster_daemon:
-    image: gcr.io/${GCP_PROJECT_ID}/daemon_dagit:latest
+    image: gcr.io/${GCP_PROJECT_ID}/daemon-dagit:${SHA}
     entrypoint:
       - dagster-daemon
       - run

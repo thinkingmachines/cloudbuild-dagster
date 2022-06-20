@@ -81,6 +81,7 @@ steps:
           --env "DAGSTER_POSTGRES_HOSTNAME=${_DAGSTER_POSTGRES_HOSTNAME}" \
           --env "DAGSTER_POSTGRES_PASSWORD=$$DAGSTER_POSTGRES_PASSWORD" \
           --env "GCP_PROJECT_ID=${PROJECT_ID}" \
+          --env "SHA=${SHORT_SHA}" \
           gcr.io/$PROJECT_ID/dagster-compose:${SHORT_SHA}"
 
     secretEnv: ["DAGSTER_POSTGRES_PASSWORD"]
