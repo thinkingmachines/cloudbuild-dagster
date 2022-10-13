@@ -5,7 +5,7 @@ description = "Sample project using Cloud Build to continously deploy Dagster to
 authors = []
 
 [tool.poetry.dependencies]
-python = "^3.6.1"
+python = "^3.8.1"
 pre-commit = "^2.17.0"
 pytest = "^6.2.5"
 dagster = "^0.15.0"
