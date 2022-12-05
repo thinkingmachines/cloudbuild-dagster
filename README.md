@@ -1,6 +1,6 @@
 # Cloud Build + Dagster Sample Repository
 
-This repository accompanies our [technical blog](),
+This repository accompanies our [technical blog](https://stories.thinkingmachin.es/we-are-on-cloud-9-with-this-dagster-secret/),
 _"We’re on Cloud (Build) 9 with this Dagster secret"_.
 
 The goal of this repository is to demonstrate how one can use Cloud Build to continously deploy Dagster projects in Google Cloud Platform.
